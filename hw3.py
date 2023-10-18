@@ -56,16 +56,15 @@ class nn_softmax_layer:
     ######
     ## Q5
     def forward(self,x):
-        x = np.exp(x)
-        y = np.sum(x, axis=1, keepdims=True)
-        return x/y
+        exps = np.exp(x - np.max(x, axis=1, keepdims=True))
+        return exps / np.sum(exps, axis=1, keepdims=True)
     
     ######
     ## Q6
     def backprop(self,x,dLdy):
-        y = self.forward(x)
-        dLdx = y * (dLdy - np.sum(dLdy * y, axis=1, keepdims=True))
-        return dLdx
+        # y = self.forward(x)
+        # dLdx = y * (dLdy - np.sum(dLdy * y, axis=1, keepdims=True))
+        return dLdy
 
 class nn_cross_entropy_layer:
     def __init__(self):
@@ -74,13 +73,16 @@ class nn_cross_entropy_layer:
     ######
     ## Q7
     def forward(self,x,y):
-        loss = np.sum(-np.log(x[range(x.shape[0]), y])) / x.shape[0]
+        lx = -np.log(x[range(x.shape[0]), y])
+        loss = np.sum(lx) / x.shape[0]
         return loss
         
     ######
     ## Q8
     def backprop(self,x,y):
-        dLdx = (x - y) / x.shape[0]
+        dLdx = x.copy()
+        dLdx[range(x.shape[0]), y.reshape(x.shape[0],)] -= 1
+        dLdx /= x.shape[0]
         return dLdx
 
 # number of data points for each of (0,0), (0,1), (1,0) and (1,1)
