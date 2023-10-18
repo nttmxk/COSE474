@@ -20,10 +20,10 @@ class nn_linear_layer:
     ## Q2
     ## returns three parameters
     def backprop(self,x,dLdy):
-        dLdx = dLdy@self.W
         dLdW = dLdy.T@x
         dLdb = np.sum(dLdy.T, axis=1, keepdims=True)
-        return dLdx,dLdW,dLdb
+        dLdx = dLdy@self.W
+        return dLdW,dLdb,dLdx
 
     def update_weights(self,dLdW,dLdb):
 
@@ -63,15 +63,8 @@ class nn_softmax_layer:
     ######
     ## Q6
     def backprop(self,x,dLdy):
-        ############################################## code review needed
         y = self.forward(x)
-        dLdx = np.zeros_like(y)
-        for i in range(y.shape[0]):
-            # Creating the Jacobian matrix for the softmax
-            jacobian_matrix = np.diag(y[i])
-            jacobian_matrix -= np.outer(y[i], y[i])
-            # Calculating the product of dLdy with the Jacobian matrix
-            dLdx[i] = dLdy[i] @ jacobian_matrix
+        dLdx = y * (dLdy - np.sum(dLdy * y, axis=1, keepdims=True))
         return dLdx
 
 class nn_cross_entropy_layer:
@@ -113,7 +106,7 @@ num_class=2
 accuracy=0
 
 # set this True if want to plot training data
-show_train_data=True
+show_train_data=False
 
 # set this True if want to plot loss over gradient descent iteration
 show_loss=True
@@ -218,8 +211,8 @@ for i in range(num_gd_step):
     
     ################
     # update weights: perform gradient descent
-    layer2.update_weights(dLdW=-b_dLdW_2 * lr, dLdb=-b_dLdb_2.T * lr)
-    layer1.update_weights(dLdW=-b_dLdW_1 * lr, dLdb=-b_dLdb_1.T * lr)
+    layer2.update_weights(dLdW=-b_dLdW_2 * lr, dLdb=-b_dLdb_2 * lr)
+    layer1.update_weights(dLdW=-b_dLdW_1 * lr, dLdb=-b_dLdb_1 * lr)
     
     if (i + 1) % 2000 == 0:
         print('gradient descent iteration:', i + 1)
