@@ -81,13 +81,13 @@ class nn_cross_entropy_layer:
     ######
     ## Q7
     def forward(self,x,y):
-        loss = np.sum(-np.log(x[range(batch_size), y])) / batch_size
+        loss = np.sum(-np.log(x[range(x.shape[0]), y])) / x.shape[0]
         return loss
         
     ######
     ## Q8
     def backprop(self,x,y):
-        dLdx = (x - y) / batch_size
+        dLdx = (x - y) / x.shape[0]
         return dLdx
 
 # number of data points for each of (0,0), (0,1), (1,0) and (1,1)
