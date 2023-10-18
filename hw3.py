@@ -20,11 +20,10 @@ class nn_linear_layer:
     ## Q2
     ## returns three parameters
     def backprop(self,x,dLdy):
-        dLdW = dLdy.T@x
-        dLdb = dLdy
-        # dLdb = np.sum(dLdy)
         dLdx = dLdy@self.W
-        return dLdW,dLdb,dLdx
+        dLdW = dLdy.T@x
+        dLdb = np.sum(dLdy.T, axis=1, keepdims=True)
+        return dLdx,dLdW,dLdb
 
     def update_weights(self,dLdW,dLdb):
 
@@ -45,10 +44,9 @@ class nn_activation_layer:
     ######
     ## Q4
     def backprop(self,x,dLdy):
-        print("spsp")
-        print(np.shape(dLdy))
-        exit(1)
-        # dLdx =
+        y = self.forward(x)
+        dsig = y * (1 - y)
+        dLdx = dLdy * dsig
         return dLdx
 
 
@@ -58,12 +56,23 @@ class nn_softmax_layer:
     ######
     ## Q5
     def forward(self,x):
-        return ...
+        x = np.exp(x)
+        y = np.sum(x, axis=1, keepdims=True)
+        return x/y
     
     ######
     ## Q6
     def backprop(self,x,dLdy):
-        return ...
+        ############################################## code review needed
+        y = self.forward(x)
+        dLdx = np.zeros_like(y)
+        for i in range(y.shape[0]):
+            # Creating the Jacobian matrix for the softmax
+            jacobian_matrix = np.diag(y[i])
+            jacobian_matrix -= np.outer(y[i], y[i])
+            # Calculating the product of dLdy with the Jacobian matrix
+            dLdx[i] = dLdy[i] @ jacobian_matrix
+        return dLdx
 
 class nn_cross_entropy_layer:
     def __init__(self):
@@ -72,12 +81,14 @@ class nn_cross_entropy_layer:
     ######
     ## Q7
     def forward(self,x,y):
-        return ...
+        loss = np.sum(-np.log(x[range(batch_size), y])) / batch_size
+        return loss
         
     ######
     ## Q8
     def backprop(self,x,y):
-        return ...
+        dLdx = (x - y) / batch_size
+        return dLdx
 
 # number of data points for each of (0,0), (0,1), (1,0) and (1,1)
 num_d=5
@@ -89,8 +100,8 @@ num_test=40
 ## learning rate (lr)and number of gradient descent steps (num_gd_step)
 ## This part is not graded (there is no definitive answer).
 ## You can set this hyperparameters through experiments.
-lr=0.5
-num_gd_step=1000
+lr=0.2
+num_gd_step=10000
 
 # dataset size
 batch_size=4*num_d
@@ -106,10 +117,7 @@ show_train_data=True
 
 # set this True if want to plot loss over gradient descent iteration
 show_loss=True
-#################### testing
 
-exit(1)
-#################### testing
 ################
 # create training data
 ################
