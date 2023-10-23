@@ -73,7 +73,7 @@ class nn_cross_entropy_layer:
     ######
     ## Q7
     def forward(self,x,y):
-        lx = -np.log(x[range(x.shape[0]), y])
+        lx = -np.log(x[range(x.shape[0]), y.reshape(-1)])
         loss = np.sum(lx) / x.shape[0]
         return loss
         
