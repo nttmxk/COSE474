@@ -21,7 +21,7 @@ class nn_linear_layer:
     ## returns three parameters
     def backprop(self,x,dLdy):
         dLdW = dLdy.T@x
-        dLdb = np.sum(dLdy.T, axis=1, keepdims=True)
+        dLdb = np.sum(dLdy.T, axis=1, keepdims=True).T
         dLdx = dLdy@self.W
         return dLdW,dLdb,dLdx
 
@@ -213,8 +213,8 @@ for i in range(num_gd_step):
     
     ################
     # update weights: perform gradient descent
-    layer2.update_weights(dLdW=-b_dLdW_2 * lr, dLdb=-b_dLdb_2 * lr)
-    layer1.update_weights(dLdW=-b_dLdW_1 * lr, dLdb=-b_dLdb_1 * lr)
+    layer2.update_weights(dLdW=-b_dLdW_2 * lr, dLdb=-b_dLdb_2.T * lr)
+    layer1.update_weights(dLdW=-b_dLdW_1 * lr, dLdb=-b_dLdb_1.T * lr)
     
     if (i + 1) % 2000 == 0:
         print('gradient descent iteration:', i + 1)
