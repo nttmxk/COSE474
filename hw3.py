@@ -64,9 +64,18 @@ class nn_softmax_layer:
     ######
     ## Q6
     def backprop(self, x, dLdy):
-        # y = self.forward(x)
-        # dLdx = y * (dLdy - np.sum(dLdy * y, axis=1, keepdims=True))
-        return dLdy
+        y = self.forward(x)
+        J = np.zeros((x.shape[0], x.shape[1], x.shape[1]))
+        for i in range(x.shape[1]):
+            for j in range(x.shape[1]):
+                if i == j:
+                    J[:, i, j] = y[:, i] * (1 - y[:, j])
+                else:
+                    J[:, i, j] = -y[:, i] * y[:, j]
+        dLdx = np.zeros_like(x)
+        for i in range(x.shape[0]):
+            dLdx[i] = dLdy[i]@J[i]
+        return dLdx
 
 
 class nn_cross_entropy_layer:
@@ -83,9 +92,9 @@ class nn_cross_entropy_layer:
     ######
     ## Q8
     def backprop(self, x, y):
-        dLdx = x.copy()
-        dLdx[range(x.shape[0]), y.reshape(x.shape[0], )] -= 1
-        dLdx /= x.shape[0]
+        dLdx = np.zeros_like(x)
+        dLdx[range(x.shape[0]), y.reshape(-1)] = 1
+        dLdx /= -x
         return dLdx
 
 
@@ -99,7 +108,7 @@ num_test = 40
 ## learning rate (lr)and number of gradient descent steps (num_gd_step)
 ## This part is not graded (there is no definitive answer).
 ## You can set this hyperparameters through experiments.
-lr = 0.2
+lr = 0.01
 num_gd_step = 10000
 
 # dataset size
