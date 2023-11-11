@@ -67,6 +67,9 @@ def view_as_windows(arr_in, window_shape, step=1):
 # and import proper libraries for those functions.
 #######
 
+
+debug_flag = False
+
 class nn_convolutional_layer:
 
     def __init__(self, f_height, f_width, input_size, in_ch_size, out_ch_size):
@@ -96,6 +99,30 @@ class nn_convolutional_layer:
     # Q1. Complete this method
     #######
     def forward(self, x):
+        batch_s, input_channel, in_width, in_height = x.shape
+        num_filter, filter_w, filter_h = self.W.shape[0], self.W.shape[2], self.W.shape[3]
+        window_w, window_h = in_width - filter_w + 1, in_height - filter_h + 1
+
+        windows = torch.empty((batch_s, input_channel,
+                               window_w, window_h,
+                               filter_w, filter_h))
+
+        if debug_flag:
+            print("x shape", x.shape)
+            print("Filter shape", self.W.shape)
+            print("Window shape", windows.shape)
+
+        for batch in range(batch_s):
+            for channel in range(input_channel):
+                windows[batch][channel] = view_as_windows(x[batch][channel], (filter_w, filter_h))
+
+        w_reshaped = self.W.reshape(num_filter, -1)
+        windows_reshaped = windows.permute(0, 2, 3, 1, 4, 5).reshape(batch_s, window_w, window_h, -1)
+
+        if debug_flag:
+            print(w_reshaped.shape, windows_reshaped.shape)
+
+        out = torch.matmul(windows_reshaped, w_reshaped.T).permute(0, 3, 1, 2)
         return out
 
     
