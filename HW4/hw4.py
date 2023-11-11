@@ -144,6 +144,18 @@ class nn_max_pooling_layer:
     # Q2. Complete this method
     #######
     def forward(self, x):
+        batch_s, input_channel, in_width, in_height = x.shape
+
+        windows = torch.empty((batch_s, input_channel,
+                               int(in_width / 2), int(in_height / 2),
+                               self.pool_size, self.pool_size))
+
+        for batch in range(batch_s):
+            for channel in range(input_channel):
+                windows[batch][channel] = view_as_windows(x[batch][channel],
+                                                          (self.pool_size, self.pool_size),
+                                                          self.stride)
+        out = windows.max(-1)[0].max(-1)[0]
         return out
 
     
