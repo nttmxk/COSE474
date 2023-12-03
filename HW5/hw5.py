@@ -258,7 +258,7 @@ if __name__ == '__main__':
     ########################
     lr = 0.001
     n_epoch = 2
-    batch_size = 100
+    batch_size = 64
     val_batch = 100
     test_batch = 100
 
