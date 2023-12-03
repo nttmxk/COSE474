@@ -256,9 +256,9 @@ if __name__ == '__main__':
     # Q. Set learning rate, batch size and total number of epochs for training
     # There are no definitive answers, experiement with several hyperparameters
     ########################
-    lr = 0.001
+    lr = 0.01
     n_epoch = 2
-    batch_size = 64
+    batch_size = 128
     val_batch = 100
     test_batch = 100
 
