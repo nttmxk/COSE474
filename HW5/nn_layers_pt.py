@@ -114,7 +114,7 @@ class nn_convolutional_layer:
         w_reshaped = self.W.reshape(num_filter, -1)
         windows_reshaped = windows.permute(0, 2, 3, 1, 4, 5).reshape(batch_s, window_w, window_h, -1)
 
-        out = torch.matmul(windows_reshaped, w_reshaped.T).permute(0, 3, 1, 2)
+        out = torch.matmul(windows_reshaped, w_reshaped.T).permute(0, 3, 1, 2) + self.b
         return out
         
     
