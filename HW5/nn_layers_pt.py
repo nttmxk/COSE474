@@ -19,105 +19,6 @@ function view_as_windows
 """
 
 def view_as_windows(arr_in, window_shape, step=1):
-    """Rolling window view of the input n-dimensional array.
-    Windows are overlapping views of the input array, with adjacent windows
-    shifted by a single row or column (or an index of a higher dimension).
-    Parameters
-    ----------
-    arr_in : Pytorch tensor
-        N-d Pytorch tensor.
-    window_shape : integer or tuple of length arr_in.ndim
-        Defines the shape of the elementary n-dimensional orthotope
-        (better know as hyperrectangle [1]_) of the rolling window view.
-        If an integer is given, the shape will be a hypercube of
-        sidelength given by its value.
-    step : integer or tuple of length arr_in.ndim
-        Indicates step size at which extraction shall be performed.
-        If integer is given, then the step is uniform in all dimensions.
-    Returns
-    -------
-    arr_out : ndarray
-        (rolling) window view of the input array.
-    Notes
-    -----
-    One should be very careful with rolling views when it comes to
-    memory usage.  Indeed, although a 'view' has the same memory
-    footprint as its base array, the actual array that emerges when this
-    'view' is used in a computation is generally a (much) larger array
-    than the original, especially for 2-dimensional arrays and above.
-    For example, let us consider a 3 dimensional array of size (100,
-    100, 100) of ``float64``. This array takes about 8*100**3 Bytes for
-    storage which is just 8 MB. If one decides to build a rolling view
-    on this array with a window of (3, 3, 3) the hypothetical size of
-    the rolling view (if one was to reshape the view for example) would
-    be 8*(100-3+1)**3*3**3 which is about 203 MB! The scaling becomes
-    even worse as the dimension of the input array becomes larger.
-    References
-    ----------
-    .. [1] https://en.wikipedia.org/wiki/Hyperrectangle
-    Examples
-    --------
-    >>> import torch
-    >>> A = torch.arange(4*4).reshape(4,4)
-    >>> A
-    array([[ 0,  1,  2,  3],
-           [ 4,  5,  6,  7],
-           [ 8,  9, 10, 11],
-           [12, 13, 14, 15]])
-    >>> window_shape = (2, 2)
-    >>> B = view_as_windows(A, window_shape)
-    >>> B[0, 0]
-    array([[0, 1],
-           [4, 5]])
-    >>> B[0, 1]
-    array([[1, 2],
-           [5, 6]])
-    >>> A = torch.arange(10)
-    >>> A
-    array([0, 1, 2, 3, 4, 5, 6, 7, 8, 9])
-    >>> window_shape = (3,)
-    >>> B = view_as_windows(A, window_shape)
-    >>> B.shape
-    (8, 3)
-    >>> B
-    array([[0, 1, 2],
-           [1, 2, 3],
-           [2, 3, 4],
-           [3, 4, 5],
-           [4, 5, 6],
-           [5, 6, 7],
-           [6, 7, 8],
-           [7, 8, 9]])
-    >>> A = torch.arange(5*4).reshape(5, 4)
-    >>> A
-    array([[ 0,  1,  2,  3],
-           [ 4,  5,  6,  7],
-           [ 8,  9, 10, 11],
-           [12, 13, 14, 15],
-           [16, 17, 18, 19]])
-    >>> window_shape = (4, 3)
-    >>> B = view_as_windows(A, window_shape)
-    >>> B.shape
-    (2, 2, 4, 3)
-    >>> B  # doctest: +NORMALIZE_WHITESPACE
-    array([[[[ 0,  1,  2],
-             [ 4,  5,  6],
-             [ 8,  9, 10],
-             [12, 13, 14]],
-            [[ 1,  2,  3],
-             [ 5,  6,  7],
-             [ 9, 10, 11],
-             [13, 14, 15]]],
-           [[[ 4,  5,  6],
-             [ 8,  9, 10],
-             [12, 13, 14],
-             [16, 17, 18]],
-            [[ 5,  6,  7],
-             [ 9, 10, 11],
-             [13, 14, 15],
-             [17, 18, 19]]]])
-    """
-
     # -- basic checks on arguments
     if not torch.is_tensor(arr_in):
         raise TypeError("`arr_in` must be a pytorch tensor")
@@ -154,7 +55,7 @@ def view_as_windows(arr_in, window_shape, step=1):
 
     win_indices_shape = torch.div(arr_shape - window_shape
                           , torch.tensor(step), rounding_mode = 'floor') + 1
-    
+
     new_shape = tuple(list(win_indices_shape) + list(window_shape))
     strides = tuple(list(indexing_strides) + list(window_strides))
 
@@ -195,11 +96,26 @@ class nn_convolutional_layer:
         self.b = b.clone().detach()
 
     def forward(self, x):
-        
         ###################################
         # Q4. Implement your layer here
         ###################################
-        pass
+        batch_s, input_channel, in_width, in_height = x.shape
+        num_filter, filter_w, filter_h = self.W.shape[0], self.W.shape[2], self.W.shape[3]
+        window_w, window_h = in_width - filter_w + 1, in_height - filter_h + 1
+
+        windows = torch.empty((batch_s, input_channel,
+                               window_w, window_h,
+                               filter_w, filter_h))
+
+        for batch in range(batch_s):
+            for channel in range(input_channel):
+                windows[batch][channel] = view_as_windows(x[batch][channel], (filter_w, filter_h))
+
+        w_reshaped = self.W.reshape(num_filter, -1)
+        windows_reshaped = windows.permute(0, 2, 3, 1, 4, 5).reshape(batch_s, window_w, window_h, -1)
+
+        out = torch.matmul(windows_reshaped, w_reshaped.T).permute(0, 3, 1, 2)
+        return out
         
     
     def step(self, lr, friction):
@@ -222,7 +138,19 @@ class nn_max_pooling_layer:
         ###################################
         # Q5. Implement your layer here
         ###################################
-        pass
+        batch_s, input_channel, in_width, in_height = x.shape
+
+        windows = torch.empty((batch_s, input_channel,
+                               int(in_width / 2), int(in_height / 2),
+                               self.pool_size, self.pool_size))
+
+        for batch in range(batch_s):
+            for channel in range(input_channel):
+                windows[batch][channel] = view_as_windows(x[batch][channel],
+                                                          (self.pool_size, self.pool_size),
+                                                          self.stride)
+        out = windows.max(-1)[0].max(-1)[0]
+        return out
 
 # relu activation
 class nn_activation_layer:
