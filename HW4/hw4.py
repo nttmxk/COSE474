@@ -116,7 +116,7 @@ class nn_convolutional_layer:
         if debug_flag:
             print(w_reshaped.shape, windows_reshaped.shape)
 
-        out = torch.matmul(windows_reshaped, w_reshaped.T).permute(0, 3, 1, 2)
+        out = torch.matmul(windows_reshaped, w_reshaped.T).permute(0, 3, 1, 2) + self.b
         return out
 
 
