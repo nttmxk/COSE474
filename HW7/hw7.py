@@ -64,7 +64,6 @@ class MultiHeadAttention(nn.Module):
         if src_batch_lens is not None:
             mask = self.create_mask(src_batch_lens, seq_len)
             scale = scale.maksed_fill(mask, float("-inf"))
-
         attention = F.softmax(scale, dim=-1)
         attention = self.dropout(attention)
         out = torch.matmul(attention, V)
@@ -73,13 +72,9 @@ class MultiHeadAttention(nn.Module):
         return out
 
     def create_mask(self, src_batch_lens, seq_len):
-        batch_size, t = src_batch_lens.size()
-        print(batch_size, t)
-        exit(1)
-        mask = torch.ones(len(batch_size), seq_len, dtype=torch.bool)
+        mask = torch.zeros(len(src_batch_lens), seq_len, dtype=torch.bool)
         for index, length in enumerate(src_batch_lens):
-            if length < seq_len:
-                mask[index, length:] = 1
+            mask[index, length:] = 1
         return mask.unsqueeze(1)
 
 class TF_Encoder_Block(nn.Module):
