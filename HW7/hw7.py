@@ -82,6 +82,18 @@ class TF_Encoder_Block(nn.Module):
         super().__init__()
 
         # Q3. Implment constructor for transformer encoder block
+        d = int(d_model / numhead)
+        self.multihead_attention = MultiHeadAttention(d_model, d, d, d, numhead, dropout)
+        self.add_norm = nn.LayerNorm(d_model)
+        self.feed_forward = nn.Sequential(
+            nn.Linear(d_model, d_ff),
+            nn.ReLU(),
+            nn.Dropout(dropout),
+            nn.Linear(d_ff, d_model),
+            nn.Dropout(dropout)
+        )
+        self.add_norm2 = nn.LayerNorm(d_model)
+
 
     def forward(self, x, src_batch_lens):
         # Q4. Implment forward function for transformer encoder block
