@@ -189,7 +189,7 @@ num_train = int(len(train_dataset) * split_ratio)
 split_train, split_valid = random_split(train_dataset, [num_train, len(train_dataset) - num_train])
 
 # Set hyperparam (batch size)
-batch_size_trn = ...
+batch_size_trn = 256
 batch_size_val = 256
 batch_size_tst = 256
 
@@ -205,7 +205,7 @@ SRC_PAD_IDX = src_word_dict['<PAD>']
 
 # show sample reviews with pos/neg sentiments
 
-show_sample_reviews = True
+show_sample_reviews = False
 
 if show_sample_reviews:
 
@@ -230,15 +230,15 @@ enc_vocab_size = len(src_word_dict)  # counting eof, one-hot vector goes in
 # Set hyperparam (model size)
 # examples: model & ff dim - 8, 16, 32, 64, 128, numhead, numlayer 1~4
 
-enc_d_model = ...
+enc_d_model = 8
 
-enc_d_ff = ...
+enc_d_ff = 16
 
-enc_num_head = ...
+enc_num_head = 4
 
-enc_num_layer= ...
+enc_num_layer = 4
 
-DROPOUT=0.1
+DROPOUT = 0.1
 
 model = sentiment_classifier(enc_input_size=enc_vocab_size,
                              enc_d_model=enc_d_model,
@@ -258,7 +258,7 @@ optimizer
 # Set hyperparam (learning rate)
 # examples: 1e-3 ~ 1e-5
 
-lr = ...
+lr = 1e-3
 
 optimizer = torch.optim.Adam(model.parameters(), lr=lr)
 
