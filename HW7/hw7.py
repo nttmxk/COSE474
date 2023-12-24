@@ -127,6 +127,8 @@ class TF_Encoder(nn.Module):
 		self.dropout = nn.Dropout(dropout)
 
 		# Q5. Implement a sequence of numlayer encoder blocks
+		self.encoder_layers = nn.ModuleList([TF_Encoder_Block(d_model, d_ff, numhead, dropout)
+											for _ in range(numlayer)])
 
 	def forward(self, x, src_batch_lens):
 		x_embed = self.src_embed(x)
@@ -135,7 +137,8 @@ class TF_Encoder(nn.Module):
 		x = x + p_enc
 
 		# Q6. Implement: forward over numlayer encoder blocks
-
+		for encoder_layer in self.encoder_layers:
+			out = encoder_layer(x, src_batch_lens)
 		return out
 
 
