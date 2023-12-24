@@ -33,6 +33,13 @@ You can implement any necessary methods.
 """
 
 
+def create_mask(src_batch_lens, seq_len):
+    mask = torch.zeros(len(src_batch_lens), seq_len, dtype=torch.bool)
+    for index, length in enumerate(src_batch_lens):
+        mask[index, length:] = 1
+    return mask.unsqueeze(1)
+
+
 class MultiHeadAttention(nn.Module):
     def __init__(self, d_model, d_Q, d_K, d_V, numhead, dropout):
         super().__init__()
@@ -60,7 +67,7 @@ class MultiHeadAttention(nn.Module):
 
         scale = torch.matmul(Q, K.transpose(-2, -1)) / (self.d_K ** 0.5)
         if src_batch_lens is not None:
-            mask = self.create_mask(src_batch_lens, seq_len)
+            mask = create_mask(src_batch_lens, seq_len)
             scale = scale.maksed_fill(mask, float("-inf"))
         attention = F.softmax(scale, dim=-1)
         attention = self.dropout(attention)
@@ -68,12 +75,6 @@ class MultiHeadAttention(nn.Module):
         out = self.out_linear(out)
         out = self.dropout(out)
         return out
-
-    def create_mask(self, src_batch_lens, seq_len):
-        mask = torch.zeros(len(src_batch_lens), seq_len, dtype=torch.bool)
-        for index, length in enumerate(src_batch_lens):
-            mask[index, length:] = 1
-        return mask.unsqueeze(1)
 
 
 class TF_Encoder_Block(nn.Module):
