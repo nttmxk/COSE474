@@ -67,7 +67,7 @@ class MultiHeadAttention(nn.Module):
 		scale = torch.matmul(Q, K.transpose(-2, -1)) / (self.d_K ** 0.5)
 		if src_batch_lens is not None:
 			mask = create_mask(src_batch_lens, seq_len)
-			scale = scale.maksed_fill(mask, float("-inf"))
+			scale = scale.masked_fill(mask, float("-inf"))
 		attention = F.softmax(scale, dim=-1)
 		attention = self.dropout(attention)
 		out = torch.matmul(attention, V)
