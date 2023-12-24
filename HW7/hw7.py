@@ -93,7 +93,11 @@ class TF_Encoder_Block(nn.Module):
 		self.add_norm2 = nn.LayerNorm(d_model)
 
 	def forward(self, x, src_batch_lens):
-		# Q4. Implment forward function for transformer encoder block
+		# Q4. Implement forward function for transformer encoder block
+		attention_out = self.multihead_attention(x, x, x, src_batch_lens)
+		x = self.add_norm(x + attention_out)
+		feed_forward_out = self.feed_forward(x)
+		out = self.add_norm2(x + feed_forward_out)
 		return out
 
 
