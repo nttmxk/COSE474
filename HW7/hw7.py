@@ -205,7 +205,7 @@ num_train = int(len(train_dataset) * split_ratio)
 split_train, split_valid = random_split(train_dataset, [num_train, len(train_dataset) - num_train])
 
 # Set hyperparam (batch size)
-batch_size_trn = 256
+batch_size_trn = 128
 batch_size_val = 256
 batch_size_tst = 256
 
@@ -246,13 +246,13 @@ enc_vocab_size = len(src_word_dict)  # counting eof, one-hot vector goes in
 # Set hyperparam (model size)
 # examples: model & ff dim - 8, 16, 32, 64, 128, numhead, numlayer 1~4
 
-enc_d_model = 8
+enc_d_model = 64
 
-enc_d_ff = 16
+enc_d_ff = 128
 
-enc_num_head = 4
+enc_num_head = 2
 
-enc_num_layer = 4
+enc_num_layer = 3
 
 DROPOUT = 0.1
 
