@@ -79,8 +79,7 @@ class MultiHeadAttention(nn.Module):
 class TF_Encoder_Block(nn.Module):
 	def __init__(self, d_model, d_ff, numhead, dropout):
 		super().__init__()
-
-		# Q3. Implment constructor for transformer encoder block
+		# Q3. Implement constructor for transformer encoder block
 		d = int(d_model / numhead)
 		self.multihead_attention = MultiHeadAttention(d_model, d, d, d, numhead, dropout)
 		self.add_norm = nn.LayerNorm(d_model)
